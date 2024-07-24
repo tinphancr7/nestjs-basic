@@ -1,14 +1,16 @@
-import { Injectable } from "@nestjs/common";
-import { CreateUserDto } from "./dto/create-user.dto";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { CreateUserDto, RegisterUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
-import { User } from "./schemas/user.schema";
-import { Model } from "mongoose";
+import { User, UserDocument } from "./schemas/user.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { genSaltSync, hashSync } from "bcryptjs";
-
+import { SoftDeleteModel } from "soft-delete-plugin-mongoose";
+import * as bcrypt from "bcrypt";
+import { IUser } from "./users.interface";
+import { Types } from "mongoose";
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(@InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>) {}
   getHashPassword = (password: string) => {
     const salt = genSaltSync(10);
     const hash = hashSync(password, salt);
@@ -19,10 +21,43 @@ export class UsersService {
     return hashSync(password, hash);
   };
 
-  async create(createUserDto: CreateUserDto) {
-    const hashPassword = this.getHashPassword(createUserDto.password);
-    const user = await this.userModel.create({ ...createUserDto, password: hashPassword });
-    return user;
+  async create(createUserDto: CreateUserDto, user: IUser) {
+    const { name, email, password, age, gender, address, role, company } = createUserDto;
+    const existingUser = await this.findOneByEmail(email);
+    if (existingUser) {
+      throw new BadRequestException("email already exists");
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser: any = await this.userModel.create({
+      name,
+      email,
+      age,
+      gender,
+      address,
+      role,
+      company: new Types.ObjectId(company),
+      password: hashedPassword,
+      createdBy: new Types.ObjectId(user?._id),
+    });
+
+    return {
+      _id: newUser?._id,
+      createdAt: newUser?.createdAt,
+    };
+  }
+
+  async register(user: RegisterUserDto) {
+    const existingUser = await this.findOneByEmail(user.email);
+    if (existingUser) {
+      throw new BadRequestException("email already exists");
+    }
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    return await this.userModel.create({
+      ...user,
+      password: hashedPassword,
+      role: "USER",
+    });
   }
 
   findAll() {
@@ -32,8 +67,8 @@ export class UsersService {
   findOne(id: number) {
     return `This action returns a #${id} user`;
   }
-  findOneByUsername(username: string) {
-    return this.userModel.findOne({ email: username });
+  findOneByEmail(email: string): Promise<User | null> {
+    return this.userModel.findOne({ email });
   }
 
   async update(updateUserDto: UpdateUserDto) {
@@ -41,6 +76,6 @@ export class UsersService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} user`;
+    return this.userModel.softDelete({ _id: id });
   }
 }
