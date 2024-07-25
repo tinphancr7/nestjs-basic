@@ -1,15 +1,16 @@
 //auth.service.ts
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
+import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
+import { JwtService, TokenExpiredError } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 
 import { UsersService } from "src/users/users.service";
 import { User } from "src/users/schemas/user.schema";
 
-import { CreateUserDto, RegisterUserDto } from "src/users/dto/create-user.dto";
+import { RegisterUserDto } from "src/users/dto/create-user.dto";
 import { IUser } from "src/users/users.interface";
 import { ConfigService } from "@nestjs/config";
 import { Response } from "express";
+import ms from "ms";
 
 @Injectable()
 export class AuthService {
@@ -29,21 +30,51 @@ export class AuthService {
     }
     return user;
   }
-  async login(user: IUser, response: Response) {
-    const payload = {
-      sub: "token login",
-      iss: "server",
-      ...user,
-    };
+  async login(user: IUser, response) {
+    try {
+      // Construct the payload for the new JWT
+      const payload = {
+        sub: "token login",
+        iss: "server",
+        ...user,
+      };
 
-    // create refresh token
+      // Create a new refresh token with the payload
+      const newRefreshToken = this.createRefreshToken(payload);
 
-    const refresh_token = this.createRefreshToken(payload);
+      //update refresh token of user
 
-    //set cookie
-    response.cookie("refresh_token", refresh_token);
+      // Update the user's refresh token in the database
+      await this.usersService.updateRefreshToken({
+        refresh_token: newRefreshToken,
+        _id: user._id,
+      });
 
-    return { access_token: this.jwtService.sign(payload), user };
+      // Clear the old refresh token cookie
+      response.clearCookie("refresh_token");
+
+      // Set a new refresh token cookie with appropriate options
+      response.cookie("refresh_token", newRefreshToken, {
+        httpOnly: true,
+        maxAge: ms(this.configService.get<string>("JWT_REFRESH_TOKEN_EXPIRES_IN")),
+      });
+
+      // Sign the payload to create a new access token
+      const accessToken = this.jwtService.sign(payload);
+
+      // Return the new access token and the user
+      return { access_token: accessToken, user };
+    } catch (error) {
+      // Log the error for debugging purposes
+      console.error("Login error:", error);
+
+      // Throw an appropriate HTTP exception
+      if (error instanceof UnauthorizedException) {
+        throw new UnauthorizedException("Invalid credentials or token");
+      } else {
+        throw new InternalServerErrorException("An error occurred while logging in");
+      }
+    }
   }
   async register(user: RegisterUserDto) {
     const newUser: any = await this.usersService.register(user);
@@ -55,11 +86,57 @@ export class AuthService {
     // return this.login({ _id: _id.toString(), name, email, role });
   }
 
-  createRefreshToken = (payload) => {
+  createRefreshToken = (payload: any) => {
     const refresh_token = this.jwtService.sign(payload, {
       secret: this.configService.get<string>("JWT_REFRESH_TOKEN_SECRET"),
-      expiresIn: this.configService.get<string>("JWT_REFRESH_TOKEN_EXPIRES_IN"),
+      expiresIn: ms(this.configService.get<string>("JWT_REFRESH_TOKEN_EXPIRES_IN")) / 1000,
     });
     return refresh_token;
+  };
+
+  processNewToken = async (refresh_token: string, response: Response) => {
+    try {
+      // Retrieve the JWT secret from the configuration service
+      const secret = this.configService.get<string>("JWT_REFRESH_TOKEN_SECRET");
+
+      // Verify the provided refresh token using the secret
+      this.jwtService.verify(refresh_token, { secret });
+
+      // Find the user associated with the provided refresh token
+      const user = await this.usersService.findUserByToken(refresh_token);
+      const { email, name, _id, role } = user;
+
+      // If no user is found, throw a BadRequestException
+      if (!user) {
+        throw new BadRequestException(`Could not find refresh token`);
+      }
+
+      // Process refresh token
+      return this.login(
+        {
+          _id: _id.toString(),
+          name,
+          email,
+          role,
+        },
+        response,
+      );
+    } catch (error) {
+      console.log("eror", error);
+      // If the error is a TokenExpiredError, throw an UnauthorizedException
+      if (error instanceof TokenExpiredError) {
+        throw new UnauthorizedException("EXPIRED_REFRESH_TOKEN");
+      }
+      // For all other errors, throw a BadRequestException
+      throw new BadRequestException("Invalid refresh token");
+    }
+  };
+
+  logout = async (user: IUser, response: Response) => {
+    await this.usersService.updateRefreshToken({ refresh_token: "", _id: user?._id });
+
+    response.clearCookie("refresh_token");
+
+    return "ok";
   };
 }

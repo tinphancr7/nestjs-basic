@@ -31,6 +31,9 @@ export class User {
 
   @Prop()
   role: string;
+
+  @Prop()
+  refresh_token: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

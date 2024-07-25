@@ -2,6 +2,7 @@ import { ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/com
 import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
 import { IS_PUBLIC } from "../decorators/public.decorator";
+import { TokenExpiredError } from "@nestjs/jwt";
 
 @Injectable()
 export class JwtGuard extends AuthGuard("jwt") {
@@ -19,6 +20,9 @@ export class JwtGuard extends AuthGuard("jwt") {
 
   handleRequest(err, user, info) {
     // You can throw an exception based on either "info" or "err" arguments
+    if (info instanceof TokenExpiredError) {
+      throw new UnauthorizedException("JWT token has expired");
+    }
     if (err || !user) {
       throw err || new UnauthorizedException("Need a jwt token in header");
     }

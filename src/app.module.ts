@@ -12,6 +12,8 @@ import { connection } from "mongoose";
 import { softDeletePlugin } from "soft-delete-plugin-mongoose";
 import { CompaniesModule } from "./companies/companies.module";
 import { ResumeModule } from "./resume/resume.module";
+import { JobsModule } from './jobs/jobs.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { ResumeModule } from "./resume/resume.module";
     AuthModule,
     CompaniesModule,
     ResumeModule,
+    JobsModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [

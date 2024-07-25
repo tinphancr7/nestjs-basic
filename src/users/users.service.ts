@@ -78,4 +78,14 @@ export class UsersService {
   remove(id: number) {
     return this.userModel.softDelete({ _id: id });
   }
+
+  async updateRefreshToken({ refresh_token, _id }) {
+    return await this.userModel.findOneAndUpdate({ _id }, { refresh_token }, { new: true });
+  }
+
+  async findUserByToken(refresh_token: string) {
+    return await this.userModel.findOne({
+      refresh_token,
+    });
+  }
 }
