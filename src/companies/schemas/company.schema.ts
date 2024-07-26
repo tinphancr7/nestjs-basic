@@ -1,7 +1,6 @@
-import { forwardRef } from "@nestjs/common";
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Date, HydratedDocument, Types } from "mongoose";
-import { User, UserDocument } from "src/users/schemas/user.schema";
+import { HydratedDocument, Types } from "mongoose";
+import { UserDocument } from "src/users/schemas/user.schema";
 
 export type CompanyDocument = HydratedDocument<Company>;
 @Schema({ timestamps: true })
@@ -15,6 +14,9 @@ export class Company {
   @Prop()
   description: string;
 
+  @Prop()
+  logo: string;
+
   @Prop({ type: Types.ObjectId, ref: "User" })
   createdBy: UserDocument;
 
@@ -23,12 +25,6 @@ export class Company {
 
   @Prop({ type: Types.ObjectId, ref: "User" })
   deletedBy: UserDocument;
-
-  @Prop()
-  isDeleted: boolean;
-
-  //   @Prop()
-  //   deleteAt: Date;
 }
 
 export const CompanySchema = SchemaFactory.createForClass(Company);

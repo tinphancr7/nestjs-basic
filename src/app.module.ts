@@ -8,14 +8,14 @@ import { AuthModule } from "./auth/auth.module";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtGuard } from "./auth/guards/jwt.guard";
 import { JwtStrategy } from "./auth/strategy/jwt.strategy";
-import { connection } from "mongoose";
 import { softDeletePlugin } from "soft-delete-plugin-mongoose";
 import { CompaniesModule } from "./companies/companies.module";
-import { ResumeModule } from "./resume/resume.module";
-import { JobsModule } from './jobs/jobs.module';
-import { FilesModule } from './files/files.module';
-import { PermissionsModule } from './permissions/permissions.module';
-import { RolesModule } from './roles/roles.module';
+
+import { JobsModule } from "./jobs/jobs.module";
+import { FilesModule } from "./files/files.module";
+import { PermissionsModule } from "./permissions/permissions.module";
+import { RolesModule } from "./roles/roles.module";
+import { ResumesModule } from "./resumes/resumes.module";
 
 @Module({
   imports: [
@@ -37,11 +37,11 @@ import { RolesModule } from './roles/roles.module';
     UsersModule,
     AuthModule,
     CompaniesModule,
-    ResumeModule,
     JobsModule,
     FilesModule,
     PermissionsModule,
     RolesModule,
+    ResumesModule,
   ],
   controllers: [AppController],
   providers: [

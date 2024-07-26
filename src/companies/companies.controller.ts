@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Query, Version } from "@nestjs/common";
+import { Controller, Get, Post, Body, Param, Delete, Put, Query } from "@nestjs/common";
 import { CompaniesService } from "./companies.service";
 import { CreateCompanyDto } from "./dto/create-company.dto";
 import { UpdateCompanyDto } from "./dto/update-company.dto";
 import { User } from "src/auth/decorators/user.decorator";
 import { IUser } from "src/users/users.interface";
 import { ResponseMessage } from "src/auth/decorators/response_message.decorator";
+import { Public } from "src/auth/decorators/public.decorator";
 
 @Controller("companies")
 export class CompaniesController {
@@ -15,6 +16,7 @@ export class CompaniesController {
     return this.companiesService.create(createCompanyDto, user);
   }
 
+  @Public()
   @ResponseMessage("hello world!")
   @Get()
   findAll(@Query() query: any) {
@@ -25,6 +27,7 @@ export class CompaniesController {
     });
   }
 
+  @Public()
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.companiesService.findOne(id);

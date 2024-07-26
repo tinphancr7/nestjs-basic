@@ -1,15 +1,6 @@
 // create-job.dto.ts
-import { IsString, IsNumber, IsDate, IsBoolean, IsNotEmpty, IsOptional, IsArray, isString } from "class-validator";
+import { IsString, IsNumber, IsDate, IsBoolean, IsNotEmpty, IsOptional, IsArray } from "class-validator";
 import { Type } from "class-transformer";
-// class CompanyDto {
-//     @IsString()
-//     @IsNotEmpty()
-//     id: string;
-
-//     @IsString()
-//     @IsNotEmpty()
-//     name: string;
-//   }
 export class CreateJobDto {
   @IsString()
   @IsNotEmpty()
