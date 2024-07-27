@@ -1,4 +1,5 @@
-import { IsEmail, IsNotEmpty, MinLength } from "class-validator";
+import { IsEmail, IsMongoId, IsNotEmpty, MinLength } from "class-validator";
+import { Types } from "mongoose";
 
 export class CreateUserDto {
   @IsEmail({}, { message: "Invalid email" })
@@ -27,7 +28,8 @@ export class CreateUserDto {
   company: string;
 
   @IsNotEmpty()
-  role: string;
+  @IsMongoId()
+  role: Types.ObjectId;
 }
 export class RegisterUserDto {
   @IsEmail({}, { message: "Invalid email" })

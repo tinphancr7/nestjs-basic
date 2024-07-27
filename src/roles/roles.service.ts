@@ -6,17 +6,18 @@ import { InjectModel } from "@nestjs/mongoose";
 import { SoftDeleteModel } from "soft-delete-plugin-mongoose";
 import { IUser } from "src/users/users.interface";
 import { toObjectId } from "src/utils";
+import { ADMIN_ROLE } from "src/constant";
 
 @Injectable()
 export class RolesService {
-  constructor(@InjectModel(Role.name) private RoleModel: SoftDeleteModel<RoleDocument>) {}
+  constructor(@InjectModel(Role.name) private rolesModel: SoftDeleteModel<RoleDocument>) {}
   async create(createRoleDto: CreateRoleDto, user: IUser) {
     const { name, description, isActive, permissions } = createRoleDto;
-    const isExist = await this.RoleModel.findOne({ name });
+    const isExist = await this.rolesModel.findOne({ name });
     if (isExist) {
       throw new BadRequestException("Role already exists");
     }
-    const newRole: any = await this.RoleModel.create({
+    const newRole: any = await this.rolesModel.create({
       name,
       description,
       isActive,
@@ -31,8 +32,8 @@ export class RolesService {
 
   async findAll({ page, limit }) {
     const skip = (page - 1) * limit;
-    const result = await this.RoleModel.find().skip(skip).limit(limit).lean().populate("").sort({ createdAt: "desc" });
-    const totalItems = await this.RoleModel.countDocuments();
+    const result = await this.rolesModel.find().skip(skip).limit(limit).lean().populate("").sort({ createdAt: "desc" });
+    const totalItems = await this.rolesModel.countDocuments();
     const totalPages = Math.ceil(totalItems / limit);
     return {
       meta: {
@@ -46,10 +47,11 @@ export class RolesService {
   }
 
   async findOne(id: string) {
-    const role = await this.RoleModel.findById(id)
+    const role = await this.rolesModel
+      .findById(id)
       .populate({
         path: "permissions",
-        select: { _id: 1, name: 1, apiPath: 1, method: 1 },
+        select: { name: 1, apiPath: 1, method: 1, module: 1 },
       })
       .exec();
 
@@ -60,14 +62,16 @@ export class RolesService {
   }
 
   async update(id: string, updateRoleDto: UpdateRoleDto, user: IUser) {
-    const updatedResume = await this.RoleModel.findByIdAndUpdate(
-      id,
-      {
-        ...updateRoleDto,
-        updatedBy: toObjectId(user._id),
-      },
-      { new: true },
-    ).exec();
+    const updatedResume = await this.rolesModel
+      .findByIdAndUpdate(
+        id,
+        {
+          ...updateRoleDto,
+          updatedBy: toObjectId(user._id),
+        },
+        { new: true },
+      )
+      .exec();
     if (!updatedResume) {
       throw new NotFoundException(`Resume with ID "${id}" not found`);
     }
@@ -75,7 +79,11 @@ export class RolesService {
   }
 
   async remove(id: string): Promise<void> {
-    const deletedResume = await this.RoleModel.findByIdAndDelete(id).exec();
+    const foundRole = await this.rolesModel.findById(id);
+    if (foundRole?.name === ADMIN_ROLE) {
+      throw new BadRequestException("Not allowed to remove admin role");
+    }
+    const deletedResume = await this.rolesModel.findByIdAndDelete(id).exec();
     if (!deletedResume) {
       throw new NotFoundException(`Resume with ID "${id}" not found`);
     }

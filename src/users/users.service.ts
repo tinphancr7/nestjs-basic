@@ -8,9 +8,14 @@ import { SoftDeleteModel } from "soft-delete-plugin-mongoose";
 import * as bcrypt from "bcrypt";
 import { IUser } from "./users.interface";
 import { Types } from "mongoose";
+import { Role, RoleDocument } from "src/roles/schemas/role.schema";
+import { USER_ROLE } from "src/constant";
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
+    @InjectModel(Role.name) private roleModel: SoftDeleteModel<RoleDocument>,
+  ) {}
   getHashPassword = (password: string) => {
     const salt = genSaltSync(10);
     const hash = hashSync(password, salt);
@@ -53,10 +58,12 @@ export class UsersService {
       throw new BadRequestException("email already exists");
     }
     const hashedPassword = await bcrypt.hash(user.password, 10);
+
+    const userRole = await this.roleModel.findOne({ name: USER_ROLE });
     return await this.userModel.create({
       ...user,
       password: hashedPassword,
-      role: "USER",
+      role: userRole?._id,
     });
   }
 
@@ -64,19 +71,33 @@ export class UsersService {
     return `This action returns all users`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    return (await this.userModel.findById(id)).populate({
+      path: "role",
+      select: {
+        name: 1,
+      },
+    });
   }
-  findOneByEmail(email: string): Promise<User | null> {
-    return this.userModel.findOne({ email });
+  async findOneByEmail(email: string) {
+    return await this.userModel.findOne({ email }).populate({
+      path: "role",
+      select: {
+        name: 1,
+      },
+    });
   }
 
   async update(updateUserDto: UpdateUserDto) {
     return await this.userModel.findByIdAndUpdate(updateUserDto._id, { ...updateUserDto }, { new: true });
   }
 
-  remove(id: number) {
-    return this.userModel.softDelete({ _id: id });
+  async remove(id: number) {
+    const foundUser = await this.userModel.findById(id);
+    if (foundUser?.email === "admin@gmail.com") {
+      throw new BadRequestException("Not allowed to remove admin user");
+    }
+    return await this.userModel.softDelete({ _id: id });
   }
 
   async updateRefreshToken({ refresh_token, _id }) {
@@ -84,8 +105,16 @@ export class UsersService {
   }
 
   async findUserByToken(refresh_token: string) {
-    return await this.userModel.findOne({
-      refresh_token,
-    });
+    return await this.userModel
+      .findOne({
+        refresh_token,
+      })
+      .populate({
+        path: "role",
+        select: {
+          name: 1,
+          _id: 1,
+        },
+      });
   }
 }

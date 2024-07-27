@@ -4,13 +4,13 @@ import { JwtService, TokenExpiredError } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 
 import { UsersService } from "src/users/users.service";
-import { User } from "src/users/schemas/user.schema";
 
 import { RegisterUserDto } from "src/users/dto/create-user.dto";
 import { IUser } from "src/users/users.interface";
 import { ConfigService } from "@nestjs/config";
 import { Response } from "express";
 import ms from "ms";
+import { RolesService } from "src/roles/roles.service";
 
 @Injectable()
 export class AuthService {
@@ -18,9 +18,10 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private rolesService: RolesService,
   ) {}
-  async validateUser(email: string, password: string): Promise<User> {
-    const user: User = await this.usersService.findOneByEmail(email);
+  async validateUser(email: string, password: string) {
+    const user = await this.usersService.findOneByEmail(email);
     if (!user) {
       throw new BadRequestException("User not found");
     }
@@ -28,9 +29,15 @@ export class AuthService {
     if (!isMatch) {
       throw new BadRequestException("Password does not match");
     }
-    return user;
+
+    const temp = await this.rolesService.findOne(user?.role?._id as any);
+    const objectUser = {
+      ...user.toObject(),
+      permissions: temp.permissions ?? [],
+    };
+    return objectUser;
   }
-  async login(user: IUser, response) {
+  async login(user: IUser, response: Response) {
     try {
       // Construct the payload for the new JWT
       const payload = {
@@ -41,6 +48,8 @@ export class AuthService {
 
       // Create a new refresh token with the payload
       const newRefreshToken = this.createRefreshToken(payload);
+
+      const temp = await this.rolesService.findOne(user?.role?._id);
 
       //update refresh token of user
 
@@ -63,7 +72,7 @@ export class AuthService {
       const accessToken = this.jwtService.sign(payload);
 
       // Return the new access token and the user
-      return { access_token: accessToken, user };
+      return { access_token: accessToken, user, permission: temp?.permissions ?? [] };
     } catch (error) {
       // Log the error for debugging purposes
       console.error("Login error:", error);
@@ -104,7 +113,7 @@ export class AuthService {
 
       // Find the user associated with the provided refresh token
       const user = await this.usersService.findUserByToken(refresh_token);
-      const { email, name, _id, role } = user;
+      const { email, name, _id, role } = user as any;
 
       // If no user is found, throw a BadRequestException
       if (!user) {

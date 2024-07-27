@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Request, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, Request, Res, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { AuthGuard } from "@nestjs/passport";
 
@@ -8,10 +8,14 @@ import { Response } from "express";
 import { User } from "./decorators/user.decorator";
 import { IUser } from "src/users/users.interface";
 import { ResponseMessage } from "./decorators/response_message.decorator";
+import { RolesService } from "src/roles/roles.service";
 @Public()
 @Controller("auth")
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private roleService: RolesService,
+  ) {}
   @UseGuards(AuthGuard("local"))
   @ResponseMessage("Login successful")
   @Post("login")
@@ -32,6 +36,14 @@ export class AuthController {
     const refresh_token = request.cookies["refresh_token"];
 
     return await this.authService.processNewToken(refresh_token, response);
+  }
+
+  @Get("/account")
+  @ResponseMessage("Get user information")
+  async handleGetAccount(@User() user: IUser) {
+    const temp = (await this.roleService.findOne(user?.role?._id)) as any;
+    user.permissions = temp.permissions;
+    return user;
   }
 
   @ResponseMessage("Logout successful")

@@ -2,7 +2,6 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, HydratedDocument, Types } from "mongoose";
 import { Permission } from "src/permissions/schemas/permission.schema";
 
-import { User } from "src/users/schemas/user.schema";
 export type RoleDocument = HydratedDocument<Role>;
 
 @Schema({ timestamps: true })
@@ -19,13 +18,13 @@ export class Role extends Document {
   @Prop({ type: [Types.ObjectId], ref: Permission.name })
   permissions: string[];
 
-  @Prop({ type: Types.ObjectId, ref: User.name })
+  @Prop({ type: Types.ObjectId, ref: "User" })
   createdBy: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: User.name })
+  @Prop({ type: Types.ObjectId, ref: "User" })
   updatedBy: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: User.name })
+  @Prop({ type: Types.ObjectId, ref: "User" })
   deletedBy: Types.ObjectId;
 }
 

@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, HydratedDocument, Types } from "mongoose";
 
-import { User } from "src/users/schemas/user.schema";
 export type PermissionDocument = HydratedDocument<Permission>;
 
 @Schema({ timestamps: true })
@@ -17,13 +16,13 @@ export class Permission extends Document {
   @Prop()
   module: string;
 
-  @Prop({ type: Types.ObjectId, ref: User.name })
+  @Prop({ type: Types.ObjectId, ref: "User" })
   createdBy: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: User.name })
+  @Prop({ type: Types.ObjectId, ref: "User" })
   updatedBy: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: User.name })
+  @Prop({ type: Types.ObjectId, ref: "User" })
   deletedBy: Types.ObjectId;
 }
 

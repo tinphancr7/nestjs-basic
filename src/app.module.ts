@@ -16,6 +16,9 @@ import { FilesModule } from "./files/files.module";
 import { PermissionsModule } from "./permissions/permissions.module";
 import { RolesModule } from "./roles/roles.module";
 import { ResumesModule } from "./resumes/resumes.module";
+import { CaslModule } from "./casl/casl.module";
+import { PoliciesGuard } from "./casl/policies.guard";
+import { DatabasesModule } from "./databases/databases.module";
 
 @Module({
   imports: [
@@ -42,6 +45,8 @@ import { ResumesModule } from "./resumes/resumes.module";
     PermissionsModule,
     RolesModule,
     ResumesModule,
+    CaslModule,
+    DatabasesModule,
   ],
   controllers: [AppController],
   providers: [
@@ -49,6 +54,10 @@ import { ResumesModule } from "./resumes/resumes.module";
     {
       provide: APP_GUARD,
       useClass: JwtGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PoliciesGuard,
     },
     JwtStrategy,
   ],
