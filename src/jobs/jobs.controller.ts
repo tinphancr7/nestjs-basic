@@ -19,10 +19,11 @@ export class JobsController {
   @ResponseMessage("Jobs successfully retrieved")
   @Get()
   findAll(@Query() query: any) {
-    const { page = 1, limit = 10 } = query;
+    const { current = 1, pageSize = 10 } = query;
+
     return this.jobsService.findAll({
-      page: +page,
-      limit: +limit,
+      page: +current,
+      limit: +pageSize,
     });
   }
 

@@ -5,6 +5,7 @@ import { UpdateRoleDto } from "./dto/update-role.dto";
 import { ResponseMessage } from "src/auth/decorators/response_message.decorator";
 import { User } from "src/auth/decorators/user.decorator";
 import { IUser } from "src/users/users.interface";
+import { Public } from "src/auth/decorators/public.decorator";
 
 @Controller("roles")
 export class RolesController {

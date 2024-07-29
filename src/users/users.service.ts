@@ -7,9 +7,10 @@ import { genSaltSync, hashSync } from "bcryptjs";
 import { SoftDeleteModel } from "soft-delete-plugin-mongoose";
 import * as bcrypt from "bcrypt";
 import { IUser } from "./users.interface";
-import { Types } from "mongoose";
+
 import { Role, RoleDocument } from "src/roles/schemas/role.schema";
 import { USER_ROLE } from "src/constant";
+import { toObjectId } from "src/utils";
 @Injectable()
 export class UsersService {
   constructor(
@@ -40,10 +41,10 @@ export class UsersService {
       age,
       gender,
       address,
-      role,
-      company: new Types.ObjectId(company),
+      role: toObjectId(role),
+      company: toObjectId(company),
       password: hashedPassword,
-      createdBy: new Types.ObjectId(user?._id),
+      createdBy: toObjectId(user?._id),
     });
 
     return {

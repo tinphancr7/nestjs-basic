@@ -9,13 +9,14 @@ import { User } from "./decorators/user.decorator";
 import { IUser } from "src/users/users.interface";
 import { ResponseMessage } from "./decorators/response_message.decorator";
 import { RolesService } from "src/roles/roles.service";
-@Public()
+
 @Controller("auth")
 export class AuthController {
   constructor(
     private authService: AuthService,
     private roleService: RolesService,
   ) {}
+  @Public()
   @UseGuards(AuthGuard("local"))
   @ResponseMessage("Login successful")
   @Post("login")
@@ -23,6 +24,7 @@ export class AuthController {
     const { _id, name, email, role } = req.user;
     return this.authService.login({ _id, name, email, role }, response);
   }
+  @Public()
   @ResponseMessage("Registration successful")
   @Post("register")
   async register(@Body() registerBody: RegisterUserDto) {
@@ -43,7 +45,7 @@ export class AuthController {
   async handleGetAccount(@User() user: IUser) {
     const temp = (await this.roleService.findOne(user?.role?._id)) as any;
     user.permissions = temp.permissions;
-    return user;
+    return { user };
   }
 
   @ResponseMessage("Logout successful")

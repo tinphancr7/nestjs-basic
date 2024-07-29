@@ -16,7 +16,7 @@ export class Role extends Document {
   isActive: boolean;
 
   @Prop({ type: [Types.ObjectId], ref: Permission.name })
-  permissions: string[];
+  permissions: Types.ObjectId[];
 
   @Prop({ type: Types.ObjectId, ref: "User" })
   createdBy: Types.ObjectId;

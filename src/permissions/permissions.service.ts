@@ -28,7 +28,13 @@ export class PermissionsService {
       createdAt: newPermission.createdAt,
     };
   }
-
+  async findAllByAdmin() {
+    const result = await this.permissionModel.find().select({
+      _id: 1,
+    });
+    const newResult = result.map((item) => item._id);
+    return newResult;
+  }
   async findAll({ page, limit }) {
     const skip = (page - 1) * limit;
     const result = await this.permissionModel

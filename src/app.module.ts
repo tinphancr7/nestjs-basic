@@ -55,10 +55,10 @@ import { DatabasesModule } from "./databases/databases.module";
       provide: APP_GUARD,
       useClass: JwtGuard,
     },
-    {
-      provide: APP_GUARD,
-      useClass: PoliciesGuard,
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: PoliciesGuard,
+    // },
     JwtStrategy,
   ],
 })

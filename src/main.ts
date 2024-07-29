@@ -18,9 +18,25 @@ async function bootstrap() {
   app.useStaticAssets(publicPath);
   app.use(cookieParser());
   const configService = app.get(ConfigService);
+
+  // app.enableCors({
+  //   origin: [
+  //     // process.env.URL_UI,
+  //     "http://localhost:3000",
+  //     // 'http://localhost:5050',
+  //     // 'https://lsport-ui.vercel.app/',
+  //   ],
+  //   optionsSuccessStatus: 200,
+  //   credentials: true,
+  // });
+
   app.enableCors({
-    origin: ["*"],
+    origin: true,
+    methods: "GET, HEAD, PUT, PATCH, POST, DELETE",
+    preflightContinue: false,
+    credentials: true,
   });
+  // app.enableCors();
 
   //config versioning
   app.setGlobalPrefix("api");

@@ -18,27 +18,24 @@ export class DatabasesService implements OnModuleInit {
     private usersService: UsersService,
   ) {}
   async onModuleInit() {
-    const isInit = this.configService.get<string>("SHOULD_INIT");
-    if (Boolean(isInit)) {
-      const countUser = await this.userModel.countDocuments();
-      const countPermission = await this.permissionModel.countDocuments();
-      const countRole = await this.roleModel.countDocuments();
-
-      // Create permissions
-      if (!countPermission) {
-        await this.createFakePermissions();
-      }
-
-      // Create roles
-      if (!countRole) {
-        await this.createFakeRoles();
-      }
-
-      // Create users
-      if (!countUser) {
-        await this.createFakeUsers();
-      }
-    }
+    // const isInit = this.configService.get<string>("SHOULD_INIT");
+    // if (Boolean(isInit)) {
+    //   const countUser = await this.userModel.countDocuments();
+    //   const countPermission = await this.permissionModel.countDocuments();
+    //   const countRole = await this.roleModel.countDocuments();
+    //   // Create permissions
+    //   if (!countPermission) {
+    //     await this.createFakePermissions();
+    //   }
+    //   // Create roles
+    //   if (!countRole) {
+    //     await this.createFakeRoles();
+    //   }
+    //   // Create users
+    //   if (!countUser) {
+    //     await this.createFakeUsers();
+    //   }
+    // }
   }
 
   async createFakePermissions() {
