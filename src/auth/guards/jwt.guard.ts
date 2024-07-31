@@ -31,15 +31,15 @@ export class JwtGuard extends AuthGuard("jwt") {
 
     //check permission
 
-    const targetMethod = request.method;
-    const targetEndpoint = request?.route?.path;
-    const isExist = user?.permissions.find(
-      (permission) => permission.method === targetMethod && permission.apiPath === targetEndpoint,
-    );
-
-    if (!isExist) {
-      throw new ForbiddenException("You are not allowed to access this resource");
-    }
+    // const targetMethod = request.method;
+    // const targetEndpoint = request?.route?.path as string;
+    // let isExist = user?.permissions.find(
+    //   (permission) => permission.method === targetMethod && permission.apiPath === targetEndpoint,
+    // );
+    // if (targetEndpoint.startsWith("/api/v1/auth")) isExist = true;
+    // if (!isExist) {
+    //   throw new ForbiddenException("You are not allowed to access this resource");
+    // }
     return user;
   }
 }
