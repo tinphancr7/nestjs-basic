@@ -93,7 +93,7 @@ export class UsersService {
     return await this.userModel.findByIdAndUpdate(updateUserDto._id, { ...updateUserDto }, { new: true });
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     const foundUser = await this.userModel.findById(id);
     if (foundUser?.email === "admin@gmail.com") {
       throw new BadRequestException("Not allowed to remove admin user");

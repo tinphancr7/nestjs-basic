@@ -12,12 +12,13 @@ export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
   @Post()
+  @ResponseMessage("Create a new company")
   create(@Body() createCompanyDto: CreateCompanyDto, @User() user: IUser) {
     return this.companiesService.create(createCompanyDto, user);
   }
 
   @Public()
-  @ResponseMessage("hello world!")
+  @ResponseMessage("Fetch all companies with paginate")
   @Get()
   findAll(@Query() query: any) {
     const { current = 1, pageSize = 10 } = query;
@@ -28,17 +29,20 @@ export class CompaniesController {
   }
 
   @Public()
+  @ResponseMessage("Fetch a company by id")
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.companiesService.findOne(id);
   }
 
   @Put(":id")
+  @ResponseMessage("Update a company by id")
   update(@Param("id") id: string, @Body() updateCompanyDto: UpdateCompanyDto, @User() user: IUser) {
     return this.companiesService.update(id, updateCompanyDto, user);
   }
 
   @Delete(":id")
+  @ResponseMessage("Delete a company by id")
   remove(@Param("id") id: string) {
     return this.companiesService.remove(id);
   }

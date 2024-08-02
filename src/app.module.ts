@@ -16,10 +16,10 @@ import { FilesModule } from "./files/files.module";
 import { PermissionsModule } from "./permissions/permissions.module";
 import { RolesModule } from "./roles/roles.module";
 import { ResumesModule } from "./resumes/resumes.module";
-import { CaslModule } from "./casl/casl.module";
-import { PoliciesGuard } from "./casl/policies.guard";
+
 import { DatabasesModule } from "./databases/databases.module";
-import { SubcribersModule } from './subcribers/subcribers.module';
+import { SubcribersModule } from "./subcribers/subcribers.module";
+import { HealthModule } from "./health/health.module";
 
 @Module({
   imports: [
@@ -46,9 +46,10 @@ import { SubcribersModule } from './subcribers/subcribers.module';
     PermissionsModule,
     RolesModule,
     ResumesModule,
-    CaslModule,
+
     DatabasesModule,
     SubcribersModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [
@@ -57,10 +58,7 @@ import { SubcribersModule } from './subcribers/subcribers.module';
       provide: APP_GUARD,
       useClass: JwtGuard,
     },
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: PoliciesGuard,
-    // },
+
     JwtStrategy,
   ],
 })
