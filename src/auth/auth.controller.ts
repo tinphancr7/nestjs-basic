@@ -9,6 +9,7 @@ import { User } from "./decorators/user.decorator";
 import { IUser } from "src/users/users.interface";
 import { ResponseMessage } from "./decorators/response_message.decorator";
 import { RolesService } from "src/roles/roles.service";
+import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
 
 @Controller("auth")
 export class AuthController {
@@ -18,6 +19,8 @@ export class AuthController {
   ) {}
   @Public()
   @UseGuards(AuthGuard("local"))
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @ResponseMessage("Login successful")
   @Post("login")
   async login(@Request() req, @Res({ passthrough: true }) response: Response) {

@@ -25,7 +25,7 @@ export class CreateUserDto {
   age: string;
 
   @IsNotEmpty()
-  company: string;
+  company: Types.ObjectId;
 
   @IsNotEmpty()
   @IsMongoId()

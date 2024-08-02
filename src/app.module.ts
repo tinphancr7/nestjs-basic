@@ -19,11 +19,18 @@ import { ResumesModule } from "./resumes/resumes.module";
 import { CaslModule } from "./casl/casl.module";
 import { PoliciesGuard } from "./casl/policies.guard";
 import { DatabasesModule } from "./databases/databases.module";
-import { SubcribersModule } from './subcribers/subcribers.module';
+import { SubcribersModule } from "./subcribers/subcribers.module";
+import { ThrottlerModule } from "@nestjs/throttler";
 
 @Module({
   imports: [
     // MongooseModule.forRoot("mongodb+srv://phanthanhtincr7:totnghiep10@cluster0.8dij1zc.mongodb.net/nestjs-basic"),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 2,
+      },
+    ]),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

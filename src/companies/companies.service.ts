@@ -5,64 +5,52 @@ import { SoftDeleteModel } from "soft-delete-plugin-mongoose";
 import { Company, CompanyDocument } from "./schemas/company.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { IUser } from "src/users/users.interface";
-import { Types } from "mongoose";
+import { BaseService } from "src/base/base.service";
+import { toObjectId } from "src/utils";
 
 @Injectable()
-export class CompaniesService {
-  constructor(@InjectModel(Company.name) private companyModel: SoftDeleteModel<CompanyDocument>) {}
+export class CompaniesService extends BaseService<CompanyDocument> {
+  constructor(@InjectModel(Company.name) private readonly companyModel: SoftDeleteModel<CompanyDocument>) {
+    super(companyModel);
+  }
+
   create(createCompanyDto: CreateCompanyDto, user: IUser) {
-    return this.companyModel.create({
+    return this.createData({
       ...createCompanyDto,
-      createdBy: new Types.ObjectId(user?._id),
+      createdBy: toObjectId(user?._id),
     });
   }
 
   async findAll({ page, limit }) {
-    const skip = (page - 1) * limit;
-    const result = await this.companyModel
-      .find()
-      .skip(skip)
-      .limit(limit)
-      .lean()
-      .populate("")
-      .sort({ createdAt: "desc" });
-    const totalItems = await this.companyModel.countDocuments();
-    const totalPages = Math.ceil(totalItems / limit);
-    return {
-      meta: {
-        current: page, // trang hiện tại
-        pageSize: limit, // số lượng bản ghi đã lấy
-        pages: totalPages, // tổng số trang với điều kiện query
-        total: totalItems, // tổng số phần tử (số bản ghi)
+    return this.findAllData({
+      query: {
+        page,
+        limit,
       },
-      result, // kết quả query
-    };
+      populate: { path: "createdBy", select: { name: 1, role: 1, email: 1 } },
+    });
   }
 
   findOne(id: string) {
-    return this.companyModel.findOne({
-      _id: new Types.ObjectId(id),
+    return this.findOneData({
+      id,
+      populate: { path: "createdBy" },
     });
   }
 
   update(id: string, updateCompanyDto: UpdateCompanyDto, user: IUser) {
-    return this.companyModel.findByIdAndUpdate(
-      {
-        _id: new Types.ObjectId(id),
-      },
-      {
+    return this.updateData({
+      id,
+      updateDto: {
         ...updateCompanyDto,
-        updatedBy: new Types.ObjectId(user?._id),
+        updatedBy: toObjectId(user?._id),
       },
-      {
-        new: true,
-      },
-    );
+    });
   }
 
   remove(id: string) {
-    return this.companyModel.findByIdAndDelete({
-      _id: new Types.ObjectId(id),
+    return this.removeData({
+      id,
     });
   }
 }

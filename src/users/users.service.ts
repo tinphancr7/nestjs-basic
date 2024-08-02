@@ -68,17 +68,43 @@ export class UsersService {
     });
   }
 
-  findAll() {
-    return `This action returns all users`;
-  }
-
-  async findOne(id: number) {
-    return (await this.userModel.findById(id)).populate({
-      path: "role",
-      select: {
-        name: 1,
+  async findAll({ page, limit }) {
+    const skip = (page - 1) * limit;
+    const result = await this.userModel
+      .find()
+      .skip(skip)
+      .limit(limit)
+      .lean()
+      .populate([
+        {
+          path: "role",
+        },
+        {
+          path: "company",
+        },
+      ])
+      .sort({ createdAt: "desc" });
+    const totalItems = await this.userModel.countDocuments();
+    const totalPages = Math.ceil(totalItems / limit);
+    return {
+      meta: {
+        current: page, // trang hiện tại
+        pageSize: limit, // số lượng bản ghi đã lấy
+        pages: totalPages, // tổng số trang với điều kiện query
+        total: totalItems, // tổng số phần tử (số bản ghi)
       },
-    });
+      result, // kết quả query
+    };
+  }
+  async findOne(id: string) {
+    return await this.userModel.findById(id).populate([
+      {
+        path: "role",
+      },
+      {
+        path: "company",
+      },
+    ]);
   }
   async findOneByEmail(email: string) {
     return await this.userModel.findOne({ email }).populate({

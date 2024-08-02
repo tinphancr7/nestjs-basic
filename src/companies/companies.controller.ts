@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, Query } from "@nestjs/common";
+import { Controller, Get, Post, Body, Param, Delete, Put, Query, UseGuards } from "@nestjs/common";
 import { CompaniesService } from "./companies.service";
 import { CreateCompanyDto } from "./dto/create-company.dto";
 import { UpdateCompanyDto } from "./dto/update-company.dto";
@@ -6,6 +6,7 @@ import { User } from "src/auth/decorators/user.decorator";
 import { IUser } from "src/users/users.interface";
 import { ResponseMessage } from "src/auth/decorators/response_message.decorator";
 import { Public } from "src/auth/decorators/public.decorator";
+import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
 
 @Controller("companies")
 export class CompaniesController {
@@ -17,6 +18,8 @@ export class CompaniesController {
   }
 
   @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @ResponseMessage("hello world!")
   @Get()
   findAll(@Query() query: any) {
