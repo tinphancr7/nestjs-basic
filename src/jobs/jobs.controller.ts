@@ -9,14 +9,14 @@ import { Public } from "src/auth/decorators/public.decorator";
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
-  @ResponseMessage("Job successfully created")
+  @ResponseMessage("Create a new job")
   @Post()
   create(@Body() createJobDto: CreateJobDto) {
     return this.jobsService.create(createJobDto);
   }
 
   @Public()
-  @ResponseMessage("Jobs successfully retrieved")
+  @ResponseMessage("Fetch all jobs with paginate")
   @Get()
   findAll(@Query() query: any) {
     const { current = 1, pageSize = 10 } = query;
@@ -28,19 +28,19 @@ export class JobsController {
   }
 
   @Public()
-  @ResponseMessage("Job successfully retrieved")
+  @ResponseMessage("Fetch a resume by id")
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.jobsService.findOne(id);
   }
 
-  @ResponseMessage("Job successfully updated")
+  @ResponseMessage("Update a resume by id")
   @Put(":id")
   update(@Param("id") id: string, @Body() updateJobDto: UpdateJobDto) {
     return this.jobsService.update(id, updateJobDto);
   }
 
-  @ResponseMessage("Job successfully deleted")
+  @ResponseMessage("Delete a resume by id")
   @Delete(":id")
   remove(@Param("id") id: string) {
     return this.jobsService.remove(id);

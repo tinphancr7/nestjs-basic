@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import { join } from "path";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import helmet from "helmet";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 async function bootstrap() {
   // request -> interceptor - > pipe (validate ) -> response
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -47,6 +48,14 @@ async function bootstrap() {
   });
 
   app.use(helmet());
+  const config = new DocumentBuilder()
+    .setTitle("Cats example")
+    .setDescription("The cats API description")
+    .setVersion("1.0")
+    .addTag("cats")
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("api", app, document);
 
   await app.listen(configService.get<string>("PORT"));
 }

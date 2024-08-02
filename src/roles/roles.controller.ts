@@ -12,13 +12,13 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
-  @ResponseMessage("Create a new Role")
+  @ResponseMessage("Create a new role")
   create(@Body() createUserCvDto: CreateRoleDto, @User() user: IUser) {
     return this.rolesService.create(createUserCvDto, user);
   }
 
   @Get()
-  @ResponseMessage("Fetch all Roles with paginate")
+  @ResponseMessage("Fetch all roles with paginate")
   findAll(@Query() query: any) {
     const { page = 1, limit = 10 } = query;
     return this.rolesService.findAll({
@@ -28,19 +28,19 @@ export class RolesController {
   }
 
   @Get(":id")
-  @ResponseMessage("Fetch a Role by id")
+  @ResponseMessage("Fetch a role by id")
   findOne(@Param("id") id: string) {
     return this.rolesService.findOne(id);
   }
 
   @Put(":id")
-  @ResponseMessage("Update status Role")
+  @ResponseMessage("Update a role by id")
   updateStatus(@Param("id") id: string, @Body() updateRoleDto: UpdateRoleDto, @User() user: IUser) {
     return this.rolesService.update(id, updateRoleDto, user);
   }
 
   @Delete(":id")
-  @ResponseMessage("Delete a Role by id")
+  @ResponseMessage("Delete a role by id")
   remove(@Param("id") id: string) {
     return this.rolesService.remove(id);
   }
