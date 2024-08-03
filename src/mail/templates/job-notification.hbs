@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <title>Job Notification</title>
+    <style>
+      .container { font-family: Arial, sans-serif; color: #333333; } .header { background-color: #590000; padding: 10px;
+      text-align: center; color: white; } .content { padding: 20px; } .job-details { border: 1px solid #cccccc;
+      border-radius: 5px; padding: 10px; margin-top: 20px; } .job-details h2 { color: #0000ff; } .job-details p {
+      margin: 5px 0; } .footer { text-align: center; margin-top: 20px; } .btn { background-color: #ff0000; color: white;
+      padding: 10px 20px; text-decoration: none; border-radius: 5px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>itviec</h1>
+        <p>Ít nhưng mà chất</p>
+      </div>
+      <div class="content">
+        <p>Hi {{name}},</p>
+        <p>Based on your subscription, our Job Robot found a new frontend job in Ho Chi Minh for you.</p>
+        <div class="job-details">
+          <h2>{{jobTitle}} ({{skills}})</h2>
+          <p>{{company}}</p>
+          <p>{{salary}}</p>
+          <p>{{skills}}</p>
+        </div>
+        <div class="footer">
+          <a href="{{jobLink}}" class="btn">More frontend jobs in Ho Chi Minh</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

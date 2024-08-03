@@ -1,7 +1,7 @@
 // create-job.dto.ts
-import { IsString, IsNotEmpty, IsOptional, IsArray } from "class-validator";
+import { IsString, IsNotEmpty, IsArray } from "class-validator";
 
-export class CreateSubcriberDto {
+export class CreateSubscriberDto {
   @IsString()
   @IsNotEmpty()
   name: string;

@@ -11,12 +11,15 @@ import { IUser } from "./users.interface";
 import { Role, RoleDocument } from "src/roles/schemas/role.schema";
 import { USER_ROLE } from "src/constant";
 import { toObjectId } from "src/utils";
+import { BaseService } from "src/base/base.service";
 @Injectable()
-export class UsersService {
+export class UsersService extends BaseService<UserDocument> {
   constructor(
     @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
     @InjectModel(Role.name) private roleModel: SoftDeleteModel<RoleDocument>,
-  ) {}
+  ) {
+    super(userModel);
+  }
   getHashPassword = (password: string) => {
     const salt = genSaltSync(10);
     const hash = hashSync(password, salt);
@@ -34,8 +37,7 @@ export class UsersService {
       throw new BadRequestException("email already exists");
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser: any = await this.userModel.create({
+    return this.createData({
       name,
       email,
       age,
@@ -44,13 +46,7 @@ export class UsersService {
       role: toObjectId(role),
       company: toObjectId(company),
       password: hashedPassword,
-      createdBy: toObjectId(user?._id),
     });
-
-    return {
-      _id: newUser?._id,
-      createdAt: newUser?.createdAt,
-    };
   }
 
   async register(user: RegisterUserDto) {
@@ -69,42 +65,33 @@ export class UsersService {
   }
 
   async findAll({ page, limit }) {
-    const skip = (page - 1) * limit;
-    const result = await this.userModel
-      .find()
-      .skip(skip)
-      .limit(limit)
-      .lean()
-      .populate([
+    return this.findAllData({
+      query: {
+        page,
+        limit,
+      },
+      populate: [
         {
           path: "role",
         },
         {
           path: "company",
         },
-      ])
-      .sort({ createdAt: "desc" });
-    const totalItems = await this.userModel.countDocuments();
-    const totalPages = Math.ceil(totalItems / limit);
-    return {
-      meta: {
-        current: page, // trang hiện tại
-        pageSize: limit, // số lượng bản ghi đã lấy
-        pages: totalPages, // tổng số trang với điều kiện query
-        total: totalItems, // tổng số phần tử (số bản ghi)
-      },
-      result, // kết quả query
-    };
+      ],
+    });
   }
   async findOne(id: string) {
-    return await this.userModel.findById(id).populate([
-      {
-        path: "role",
-      },
-      {
-        path: "company",
-      },
-    ]);
+    return this.findOneData({
+      id,
+      populate: [
+        {
+          path: "role",
+        },
+        {
+          path: "company",
+        },
+      ],
+    });
   }
   async findOneByEmail(email: string) {
     return await this.userModel.findOne({ email }).populate({
@@ -115,8 +102,14 @@ export class UsersService {
     });
   }
 
-  async update(updateUserDto: UpdateUserDto) {
-    return await this.userModel.findByIdAndUpdate(updateUserDto._id, { ...updateUserDto }, { new: true });
+  async update(id: string, updateUserDto: UpdateUserDto, user: IUser) {
+    return this.updateData({
+      id,
+      updateDto: {
+        ...updateUserDto,
+        updatedBy: toObjectId(user._id),
+      },
+    });
   }
 
   async remove(id: string) {
@@ -124,7 +117,9 @@ export class UsersService {
     if (foundUser?.email === "admin@gmail.com") {
       throw new BadRequestException("Not allowed to remove admin user");
     }
-    return await this.userModel.softDelete({ _id: id });
+    return this.removeData({
+      id,
+    });
   }
 
   async updateRefreshToken({ refresh_token, _id }) {

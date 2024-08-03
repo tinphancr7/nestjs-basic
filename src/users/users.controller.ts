@@ -31,10 +31,10 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @Put()
+  @Put(":id")
   @ResponseMessage("Update a user by id")
-  update(@Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(updateUserDto);
+  update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto, @User() user: IUser) {
+    return this.usersService.update(id, updateUserDto, user);
   }
 
   @Delete(":id")

@@ -1,7 +1,7 @@
 import { NestFactory, Reflector } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ConfigService } from "@nestjs/config";
-import { ValidationPipe, VersioningType } from "@nestjs/common";
+import { Logger, ValidationPipe, VersioningType } from "@nestjs/common";
 import { TransformInterceptor } from "./core/transform.interceptor";
 import cookieParser from "cookie-parser";
 import { join } from "path";
@@ -12,7 +12,11 @@ async function bootstrap() {
   // request -> interceptor - > pipe (validate ) -> response
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const reflector = app.get(Reflector);
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+    }),
+  );
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
 
   const publicPath = join(__dirname, "../public");
@@ -56,7 +60,7 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api", app, document);
-
+  app.useLogger(new Logger());
   await app.listen(configService.get<string>("PORT"));
 }
 bootstrap();
