@@ -38,7 +38,6 @@ async function bootstrap() {
     preflightContinue: false,
     credentials: true,
   });
-  // app.enableCors();
 
   //config versioning
   app.setGlobalPrefix("api");
