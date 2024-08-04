@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { CreateUserCvDto } from "./dto/create-resume.dto";
 
@@ -9,16 +9,19 @@ import { toObjectId } from "src/utils";
 import { SoftDeleteModel } from "soft-delete-plugin-mongoose";
 import { UpdateResumeDto } from "./dto/update-resume.dto";
 import { ResumeStatus } from "src/common/enum";
+import { BaseService } from "src/base/base.service";
 
 @Injectable()
-export class ResumesService {
-  constructor(@InjectModel(Resume.name) private readonly resumeModel: SoftDeleteModel<ResumeDocument>) {}
+export class ResumesService extends BaseService<ResumeDocument> {
+  constructor(@InjectModel(Resume.name) private readonly resumeModel: SoftDeleteModel<ResumeDocument>) {
+    super(resumeModel);
+  }
 
   async create(createUserCvResumeDto: CreateUserCvDto, user: IUser) {
     const { url, company, job } = createUserCvResumeDto;
 
     const { email, _id } = user;
-    const newCV: any = await this.resumeModel.create({
+    return this.createData({
       url,
       company: toObjectId(company),
       job: toObjectId(job),
@@ -34,40 +37,23 @@ export class ResumesService {
         },
       ],
     });
-    return {
-      _id: newCV._id,
-      createdAt: newCV.createdAt,
-    };
   }
 
   async findAll({ page, limit }) {
-    const skip = (page - 1) * limit;
-    const result = await this.resumeModel
-      .find()
-      .skip(skip)
-      .limit(limit)
-      .lean()
-      .populate("")
-      .sort({ createdAt: "desc" });
-    const totalItems = await this.resumeModel.countDocuments();
-    const totalPages = Math.ceil(totalItems / limit);
-    return {
-      meta: {
-        current: page, // trang hiện tại
-        pageSize: limit, // số lượng bản ghi đã lấy
-        pages: totalPages, // tổng số trang với điều kiện query
-        total: totalItems, // tổng số phần tử (số bản ghi)
+    return this.findAllData({
+      query: {
+        page,
+        limit,
       },
-      result, // kết quả query
-    };
+      populate: [{ path: "userId", select: { name: 1, role: 1, email: 1 } }, { path: "job" }, { path: "company" }],
+    });
   }
 
   async findOne(id: string) {
-    const resume = await this.resumeModel.findById(id).exec();
-    if (!resume) {
-      throw new NotFoundException(`Resume with ID "${id}" not found`);
-    }
-    return resume;
+    return this.findOneData({
+      id,
+      populate: { path: "createdBy" },
+    });
   }
 
   async findByUser(user: IUser) {
@@ -81,33 +67,25 @@ export class ResumesService {
 
   async update(id: string, updateResumeDto: UpdateResumeDto, user: IUser) {
     const { status } = updateResumeDto;
-    const updatedResume = await this.resumeModel
-      .findByIdAndUpdate(
-        id,
-        {
-          status,
-          updatedBy: toObjectId(user._id),
-          $push: {
-            history: {
-              status,
-              updatedBy: toObjectId(user._id),
-              updatedAt: new Date(),
-            },
+    return this.updateData({
+      id,
+      updateDto: {
+        status,
+        updatedBy: toObjectId(user._id),
+        $push: {
+          history: {
+            status,
+            updatedBy: toObjectId(user._id),
+            updatedAt: new Date(),
           },
         },
-        { new: true },
-      )
-      .exec();
-    if (!updatedResume) {
-      throw new NotFoundException(`Resume with ID "${id}" not found`);
-    }
-    return updatedResume;
+      },
+    });
   }
 
-  async remove(id: string): Promise<void> {
-    const deletedResume = await this.resumeModel.findByIdAndDelete(id).exec();
-    if (!deletedResume) {
-      throw new NotFoundException(`Resume with ID "${id}" not found`);
-    }
+  async remove(id: string) {
+    return this.removeData({
+      id,
+    });
   }
 }

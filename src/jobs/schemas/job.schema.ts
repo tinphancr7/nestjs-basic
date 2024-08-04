@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument, Types } from "mongoose";
 import { Document } from "mongoose";
-import { Company, CompanyDocument } from "src/companies/schemas/company.schema";
+import { Company } from "src/companies/schemas/company.schema";
 export type JobDocument = HydratedDocument<Job>;
 
 @Schema({ timestamps: true })
@@ -13,7 +13,7 @@ export class Job extends Document {
   skills: string[];
 
   @Prop({ type: Types.ObjectId, ref: Company.name })
-  company: CompanyDocument;
+  company: Types.ObjectId;
 
   @Prop({ required: true })
   location: string;
@@ -38,6 +38,9 @@ export class Job extends Document {
 
   @Prop({ required: false, default: true })
   isActive: boolean;
+
+  @Prop({ type: Types.ObjectId, ref: "User" })
+  createdBy: Types.ObjectId;
 }
 
 export const JobSchema = SchemaFactory.createForClass(Job);

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { CreatePermissionDto } from "./dto/create-permission.dto";
 import { toObjectId } from "src/utils";
 import { IUser } from "src/users/users.interface";
@@ -6,27 +6,26 @@ import { SoftDeleteModel } from "soft-delete-plugin-mongoose";
 import { Permission, PermissionDocument } from "./schemas/permission.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { UpdatePermissionDto } from "./dto/update-permission.dto";
+import { BaseService } from "src/base/base.service";
 
 @Injectable()
-export class PermissionsService {
-  constructor(@InjectModel(Permission.name) private permissionModel: SoftDeleteModel<PermissionDocument>) {}
+export class PermissionsService extends BaseService<PermissionDocument> {
+  constructor(@InjectModel(Permission.name) private permissionModel: SoftDeleteModel<PermissionDocument>) {
+    super(permissionModel);
+  }
   async create(createPermissionDto: CreatePermissionDto, user: IUser) {
     const { method, apiPath, name, module } = createPermissionDto;
     const isExist = await this.permissionModel.findOne({ method, apiPath });
     if (isExist) {
       throw new BadRequestException("Permission already exists");
     }
-    const newPermission: any = await this.permissionModel.create({
+    return this.createData({
       method,
       apiPath,
       name,
       module,
       createdBy: toObjectId(user?._id),
     });
-    return {
-      _id: newPermission._id,
-      createdAt: newPermission.createdAt,
-    };
   }
   async findAllByAdmin() {
     const result = await this.permissionModel.find().select({
@@ -36,33 +35,20 @@ export class PermissionsService {
     return newResult;
   }
   async findAll({ page, limit }) {
-    const skip = (page - 1) * limit;
-    const result = await this.permissionModel
-      .find()
-      .skip(skip)
-      .limit(limit)
-      .lean()
-      .populate("")
-      .sort({ createdAt: "desc" });
-    const totalItems = await this.permissionModel.countDocuments();
-    const totalPages = Math.ceil(totalItems / limit);
-    return {
-      meta: {
-        current: page, // trang hiện tại
-        pageSize: limit, // số lượng bản ghi đã lấy
-        pages: totalPages, // tổng số trang với điều kiện query
-        total: totalItems, // tổng số phần tử (số bản ghi)
+    return this.findAllData({
+      query: {
+        page,
+        limit,
       },
-      result, // kết quả query
-    };
+      populate: { path: "createdBy", select: { name: 1, role: 1, email: 1 } },
+    });
   }
 
   async findOne(id: string) {
-    const resume = await this.permissionModel.findById(id).exec();
-    if (!resume) {
-      throw new NotFoundException(`Resume with ID "${id}" not found`);
-    }
-    return resume;
+    return this.findOneData({
+      id,
+      populate: [{ path: "createdBy", select: { name: 1, role: 1, email: 1 } }],
+    });
   }
 
   async findByUser(user: IUser) {
@@ -75,26 +61,18 @@ export class PermissionsService {
   }
 
   async update(id: string, updatePermissionDto: UpdatePermissionDto, user: IUser) {
-    const updatedResume = await this.permissionModel
-      .findByIdAndUpdate(
-        id,
-        {
-          ...updatePermissionDto,
-          updatedBy: toObjectId(user._id),
-        },
-        { new: true },
-      )
-      .exec();
-    if (!updatedResume) {
-      throw new NotFoundException(`Resume with ID "${id}" not found`);
-    }
-    return updatedResume;
+    return this.updateData({
+      id,
+      updateDto: {
+        ...updatePermissionDto,
+        updatedBy: toObjectId(user._id),
+      },
+    });
   }
 
-  async remove(id: string): Promise<void> {
-    const deletedResume = await this.permissionModel.findByIdAndDelete(id).exec();
-    if (!deletedResume) {
-      throw new NotFoundException(`Resume with ID "${id}" not found`);
-    }
+  async remove(id: string) {
+    return this.removeData({
+      id,
+    });
   }
 }

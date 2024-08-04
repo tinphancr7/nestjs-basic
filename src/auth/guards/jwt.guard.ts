@@ -4,6 +4,7 @@ import { AuthGuard } from "@nestjs/passport";
 import { IS_PUBLIC } from "../decorators/public.decorator";
 import { TokenExpiredError } from "@nestjs/jwt";
 import { Request } from "express";
+import { IS_SKIP_PERMISSION } from "../decorators/skip_permission.decorator";
 
 @Injectable()
 export class JwtGuard extends AuthGuard("jwt") {
@@ -21,6 +22,10 @@ export class JwtGuard extends AuthGuard("jwt") {
 
   handleRequest(err, user, info, context: ExecutionContext) {
     const request: Request = context.switchToHttp().getRequest();
+    const isSkipPermission = this.reflector.getAllAndOverride<boolean>(IS_SKIP_PERMISSION, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
     // You can throw an exception based on either "info" or "err" arguments
     if (info instanceof TokenExpiredError) {
       throw new UnauthorizedException("JWT token has expired");
@@ -31,15 +36,15 @@ export class JwtGuard extends AuthGuard("jwt") {
 
     //check permission
 
-    // const targetMethod = request.method;
-    // const targetEndpoint = request?.route?.path as string;
-    // let isExist = user?.permissions.find(
-    //   (permission) => permission.method === targetMethod && permission.apiPath === targetEndpoint,
-    // );
-    // if (targetEndpoint.startsWith("/api/v1/auth")) isExist = true;
-    // if (!isExist) {
-    //   throw new ForbiddenException("You are not allowed to access this resource");
-    // }
+    const targetMethod = request.method;
+    const targetEndpoint = request?.route?.path as string;
+    let isExist = user?.permissions.find(
+      (permission) => permission.method === targetMethod && permission.apiPath === targetEndpoint,
+    );
+    if (targetEndpoint.startsWith("/api/v1/auth")) isExist = true;
+    if (!isExist && !isSkipPermission) {
+      throw new ForbiddenException("You are not allowed to access this resource");
+    }
     return user;
   }
 }

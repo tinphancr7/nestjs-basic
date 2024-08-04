@@ -18,12 +18,15 @@ import { RolesModule } from "./roles/roles.module";
 import { ResumesModule } from "./resumes/resumes.module";
 
 import { DatabasesModule } from "./databases/databases.module";
-import { SubcribersModule } from "./subcribers/subcribers.module";
+import { SubscribersModule } from "./subcribers/subscribers.module";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { HealthModule } from "./health/health.module";
+import { MailModule } from "./mail/mail.module";
+import { ScheduleModule } from "@nestjs/schedule";
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     // MongooseModule.forRoot("mongodb+srv://phanthanhtincr7:totnghiep10@cluster0.8dij1zc.mongodb.net/nestjs-basic"),
     ThrottlerModule.forRoot([
       {
@@ -55,8 +58,9 @@ import { HealthModule } from "./health/health.module";
     ResumesModule,
 
     DatabasesModule,
-    SubcribersModule,
+    SubscribersModule,
     HealthModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [

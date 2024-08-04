@@ -1,55 +1,68 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { CreateJobDto } from "./dto/create-job.dto";
 import { UpdateJobDto } from "./dto/update-job.dto";
 import { Job, JobDocument } from "./schemas/job.schema";
 import { SoftDeleteModel } from "soft-delete-plugin-mongoose";
+import { BaseService } from "src/base/base.service";
+import { toObjectId } from "src/utils";
+import { IUser } from "src/users/users.interface";
 
 @Injectable()
-export class JobsService {
-  constructor(@InjectModel(Job.name) private jobModel: SoftDeleteModel<JobDocument>) {}
+export class JobsService extends BaseService<JobDocument> {
+  constructor(@InjectModel(Job.name) private jobModel: SoftDeleteModel<JobDocument>) {
+    super(jobModel);
+  }
 
-  async create(createJobDto: CreateJobDto): Promise<Job> {
-    const createdJob = new this.jobModel(createJobDto);
-    return await createdJob.save();
+  async create(createJobDto: CreateJobDto, user: IUser) {
+    return this.createData({
+      ...createJobDto,
+      createdBy: toObjectId(user?._id),
+    });
   }
 
   async findAll({ page, limit }) {
-    const skip = (page - 1) * limit;
-    const result = await this.jobModel.find().skip(skip).limit(limit).lean().populate("").sort({ createdAt: "desc" });
-    const totalItems = await this.jobModel.countDocuments();
-    const totalPages = Math.ceil(totalItems / limit);
-    return {
-      meta: {
-        current: page, // trang hiện tại
-        pageSize: limit, // số lượng bản ghi đã lấy
-        pages: totalPages, // tổng số trang với điều kiện query
-        total: totalItems, // tổng số phần tử (số bản ghi)
+    return this.findAllData({
+      query: {
+        page,
+        limit,
       },
-      result, // kết quả query
-    };
+      populate: [
+        { path: "createdBy", select: { name: 1, role: 1, email: 1 } },
+        {
+          path: "company",
+          select: { name: 1, logo: 1, address: 1 },
+        },
+      ],
+    });
   }
 
-  async findOne(id: string): Promise<Job> {
-    const job = await this.jobModel.findById(id).exec();
-    if (!job) {
-      throw new NotFoundException(`Job with ID ${id} not found`);
-    }
-    return job;
+  async findOne(id: string) {
+    return this.findOneData({
+      id,
+      populate: [
+        { path: "createdBy", select: { name: 1, role: 1, email: 1 } },
+        {
+          path: "company",
+          select: { name: 1, logo: 1, address: 1 },
+        },
+      ],
+    });
   }
 
-  async update(id: string, updateJobDto: UpdateJobDto): Promise<Job> {
-    const updatedJob = await this.jobModel.findByIdAndUpdate(id, updateJobDto, { new: true }).exec();
-    if (!updatedJob) {
-      throw new NotFoundException(`Job with ID ${id} not found`);
-    }
-    return updatedJob;
+  async update(id: string, updateJobDto: UpdateJobDto, user: IUser) {
+    return this.updateData({
+      id,
+      updateDto: {
+        ...updateJobDto,
+        updatedBy: toObjectId(user?._id),
+      },
+    });
   }
 
-  async remove(id: string): Promise<void> {
-    const result = await this.jobModel.findByIdAndDelete(id).exec();
-    if (result === null) {
-      throw new NotFoundException(`Job with ID ${id} not found`);
-    }
+  async remove(id: string) {
+    return this.removeData({
+      id,
+    });
   }
 }

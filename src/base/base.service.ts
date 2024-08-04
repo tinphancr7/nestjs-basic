@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { Model } from "mongoose";
 import { toObjectId } from "src/utils";
@@ -49,17 +49,24 @@ export abstract class BaseService<T> {
   async findOneData({ id, populate }: { id: string; populate?: any }): Promise<T> {
     try {
       const findQuery = this.model.findById(toObjectId(id));
+
       if (populate) {
         findQuery.populate(populate);
       }
 
       const entity = await findQuery.exec();
+
       if (!entity) {
         throw new NotFoundException("Entity not found");
       }
       return entity;
     } catch (error) {
-      throw new Error("Error finding entity");
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        console.log("Known error:", error.message);
+        throw error;
+      }
+      console.error("Unexpected error finding entity", error);
+      throw new Error("Internal server error");
     }
   }
 
@@ -80,7 +87,11 @@ export abstract class BaseService<T> {
       }
       return updatedEntity;
     } catch (error) {
-      throw new Error("Error updating entity");
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+
+      throw new Error("Internal server error");
     }
   }
 
@@ -92,7 +103,11 @@ export abstract class BaseService<T> {
       }
       return deletedEntity;
     } catch (error) {
-      throw new Error("Error deleting entity");
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+
+      throw new Error("Internal server error");
     }
   }
 }
