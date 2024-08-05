@@ -6,6 +6,7 @@ import { ResponseMessage } from "src/auth/decorators/response_message.decorator"
 import { Public } from "src/auth/decorators/public.decorator";
 import { User } from "src/auth/decorators/user.decorator";
 import { IUser } from "src/users/users.interface";
+import { ObjectIdTransformPipe } from "src/pipes/objectid-transform.pipe";
 
 @Controller("jobs")
 export class JobsController {
@@ -13,7 +14,7 @@ export class JobsController {
 
   @ResponseMessage("Create a new job")
   @Post()
-  create(@Body() createJobDto: CreateJobDto, @User() user: IUser) {
+  create(@Body(new ObjectIdTransformPipe()) createJobDto: CreateJobDto, @User() user: IUser) {
     return this.jobsService.create(createJobDto, user);
   }
 
@@ -38,7 +39,7 @@ export class JobsController {
 
   @ResponseMessage("Update a resume by id")
   @Put(":id")
-  update(@Param("id") id: string, @Body() updateJobDto: UpdateJobDto, @User() user: IUser) {
+  update(@Param("id") id: string, @Body(new ObjectIdTransformPipe()) updateJobDto: UpdateJobDto, @User() user: IUser) {
     return this.jobsService.update(id, updateJobDto, user);
   }
 
