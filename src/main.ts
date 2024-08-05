@@ -8,6 +8,7 @@ import { join } from "path";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import helmet from "helmet";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 async function bootstrap() {
   // request -> interceptor - > pipe (validate ) -> response
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -20,7 +21,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
 
   const publicPath = join(__dirname, "../public");
-
+  app.useGlobalInterceptors(new LoggingInterceptor());
   app.useStaticAssets(publicPath);
   app.use(cookieParser());
   const configService = app.get(ConfigService);
@@ -60,6 +61,10 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api", app, document);
   app.useLogger(new Logger());
+  app.use((req: Request, res: Response, next) => {
+    new Logger().debug("===TRIGGER GLOBAL MIDDLEWARE==");
+    next();
+  });
   await app.listen(configService.get<string>("PORT"));
 }
 bootstrap();
