@@ -5,8 +5,10 @@ import { UpdatePermissionDto } from "./dto/update-permission.dto";
 import { ResponseMessage } from "src/auth/decorators/response_message.decorator";
 import { IUser } from "src/users/users.interface";
 import { User } from "src/auth/decorators/user.decorator";
+import { ApiTags } from "@nestjs/swagger";
 
 @Controller("permissions")
+@ApiTags("permissions")
 export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) {}
 

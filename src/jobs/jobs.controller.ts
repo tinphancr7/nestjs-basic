@@ -7,8 +7,10 @@ import { Public } from "src/auth/decorators/public.decorator";
 import { User } from "src/auth/decorators/user.decorator";
 import { IUser } from "src/users/users.interface";
 import { ObjectIdTransformPipe } from "src/pipes/objectid-transform.pipe";
+import { ApiTags } from "@nestjs/swagger";
 
 @Controller("jobs")
+@ApiTags("jobs")
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 

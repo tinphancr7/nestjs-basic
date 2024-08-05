@@ -1,6 +1,7 @@
 // create-job.dto.ts
-import { IsString, IsNumber, IsDate, IsBoolean, IsNotEmpty, IsOptional, IsArray } from "class-validator";
+import { IsString, IsNumber, IsDate, IsBoolean, IsNotEmpty, IsOptional, IsArray, IsMongoId } from "class-validator";
 import { Type } from "class-transformer";
+import { Types } from "mongoose";
 export class CreateJobDto {
   @IsString()
   @IsNotEmpty()
@@ -16,9 +17,9 @@ export class CreateJobDto {
   //   @Type(() => CompanyDto)
   //   company: CompanyDto;
 
-  @IsString()
+  @IsMongoId()
   @IsNotEmpty()
-  company: string;
+  company: Types.ObjectId;
 
   @IsString()
   @IsNotEmpty()

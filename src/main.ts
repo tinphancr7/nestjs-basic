@@ -7,8 +7,10 @@ import cookieParser from "cookie-parser";
 import { join } from "path";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import helmet from "helmet";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+
 import { LoggingInterceptor } from "./interceptors/logging.interceptor";
+import { HttpExceptionFilter } from "./filters/http-exception.filter";
+import { configSwagger } from "./configs/api-docs.config";
 async function bootstrap() {
   // request -> interceptor - > pipe (validate ) -> response
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -18,6 +20,8 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+
+  app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
 
   const publicPath = join(__dirname, "../public");
@@ -48,18 +52,22 @@ async function bootstrap() {
   app.setGlobalPrefix("api");
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: ["1", "2"],
+    defaultVersion: ["1"],
+    // defaultVersion: ["1", "2"],
   });
 
   app.use(helmet());
-  const config = new DocumentBuilder()
-    .setTitle("Cats example")
-    .setDescription("The cats API description")
-    .setVersion("1.0")
-    .addTag("cats")
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api", app, document);
+  // const config = new DocumentBuilder()
+  //   .setTitle("Cats example")
+  //   .setDescription("The cats API description")
+  //   .setVersion("1.0")
+  //   .addTag("cats")
+  //   .build();
+  // const document = SwaggerModule.createDocument(app, config);
+  // SwaggerModule.setup("api", app, document);
+
+  configSwagger(app);
+  app.useStaticAssets(join(__dirname, "./served")); // <-- Thêm vào đây
   app.useLogger(new Logger());
   app.use((req: Request, res: Response, next) => {
     new Logger().debug("===TRIGGER GLOBAL MIDDLEWARE==");

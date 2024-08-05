@@ -6,8 +6,10 @@ import { ResponseMessage } from "src/auth/decorators/response_message.decorator"
 import { User } from "src/auth/decorators/user.decorator";
 import { IUser } from "src/users/users.interface";
 import { Public } from "src/auth/decorators/public.decorator";
+import { ApiTags } from "@nestjs/swagger";
 
 @Controller("roles")
+@ApiTags("roles")
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 

@@ -51,6 +51,7 @@ export class JobsService extends BaseService<JobDocument> {
   }
 
   async update(id: string, updateJobDto: UpdateJobDto, user: IUser) {
+    console.log("update", updateJobDto, id);
     return this.updateData({
       id,
       updateDto: {

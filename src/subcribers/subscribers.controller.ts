@@ -9,8 +9,10 @@ import { User } from "src/auth/decorators/user.decorator";
 import { IUser } from "src/users/users.interface";
 import { IsSkipPermission } from "src/auth/decorators/skip_permission.decorator";
 import { Cron, CronExpression } from "@nestjs/schedule";
+import { ApiTags } from "@nestjs/swagger";
 
 @Controller("subscribers")
+@ApiTags("subscribers")
 export class SubscribersController {
   constructor(private readonly subscribersService: SubscribersService) {}
   private logger = new Logger(); //will print this in context

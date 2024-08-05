@@ -15,12 +15,30 @@ import { FilesService } from "./files.service";
 import { CreateFileDto } from "./dto/create-file.dto";
 import { UpdateFileDto } from "./dto/update-file.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 @Controller("files")
+@ApiTags("files")
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
   @Post("upload")
+  @ApiOperation({
+    summary: "User create their collection",
+  })
+  @ApiBearerAuth("JWT-auth")
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: {
+        file: {
+          type: "string",
+          format: "binary",
+        },
+      },
+    },
+  })
   @UseInterceptors(FileInterceptor("fileUpload"))
   uploadFile(
     @UploadedFile(

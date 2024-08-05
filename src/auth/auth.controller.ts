@@ -10,8 +10,10 @@ import { IUser } from "src/users/users.interface";
 import { ResponseMessage } from "./decorators/response_message.decorator";
 import { RolesService } from "src/roles/roles.service";
 import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
+import { ApiTags } from "@nestjs/swagger";
 
 @Controller("auth")
+@ApiTags("auth")
 export class AuthController {
   constructor(
     private authService: AuthService,

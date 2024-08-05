@@ -13,7 +13,7 @@ export class LoggerMiddleware implements NestMiddleware {
       level: logLevel,
       format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
       transports: [
-        new winston.transports.Console(),
+        // new winston.transports.Console(),
         new winston.transports.DailyRotateFile({
           filename: `logs/${logLevel}-%DATE%.log`,
           datePattern: "YYYY-MM-DD",
@@ -60,8 +60,8 @@ export class LoggerMiddleware implements NestMiddleware {
           body: this.encryptRequestBodyOnProduction(request.body),
           query: request.query,
           params: request.params,
-          headers: request.headers,
-          user: request.user,
+          // headers: request.headers,
+          // user: request.user,
         };
         this.winstonLoggerErrorLevel.error({
           ...basicRequestMetaInfo,

@@ -4,8 +4,10 @@ import { CreateMailDto } from "./dto/create-mail.dto";
 import { UpdateMailDto } from "./dto/update-mail.dto";
 import { ResponseMessage } from "src/auth/decorators/response_message.decorator";
 import { Public } from "src/auth/decorators/public.decorator";
+import { ApiTags } from "@nestjs/swagger";
 
 @Controller("mail")
+@ApiTags("mail")
 export class MailController {
   constructor(private readonly mailService: MailService) {}
 

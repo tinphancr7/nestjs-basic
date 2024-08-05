@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 
 import { Model } from "mongoose";
 import { toObjectId } from "src/utils";
@@ -8,6 +8,7 @@ export abstract class BaseService<T> {
   constructor(private readonly model: Model<T>) {}
 
   async createData(createDto: any): Promise<T> {
+    console.log("createData", createDto);
     try {
       const result = this.model.create({
         ...createDto,
@@ -48,7 +49,7 @@ export abstract class BaseService<T> {
 
   async findOneData({ id, populate }: { id: string; populate?: any }): Promise<T> {
     try {
-      const findQuery = this.model.findById(toObjectId(id));
+      const findQuery = this.model.findById(id);
 
       if (populate) {
         findQuery.populate(populate);
@@ -62,11 +63,12 @@ export abstract class BaseService<T> {
       return entity;
     } catch (error) {
       if (error instanceof NotFoundException || error instanceof BadRequestException) {
-        console.log("Known error:", error.message);
         throw error;
+      } else if (error.name === "CastError" && error.kind === "ObjectId") {
+        throw new BadRequestException("Invalid ID format");
+      } else {
+        throw new InternalServerErrorException("Internal server error");
       }
-      console.error("Unexpected error finding entity", error);
-      throw new Error("Internal server error");
     }
   }
 
