@@ -2,11 +2,11 @@ import { ConfigService } from "@nestjs/config";
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { faker } from "@faker-js/faker";
 import { InjectModel } from "@nestjs/mongoose";
-import { User, UserDocument } from "src/users/schemas/user.schema";
-import { Role, RoleDocument } from "src/roles/schemas/role.schema";
+import { User, UserDocument } from "src/modules/users/schemas/user.schema";
+import { Role, RoleDocument } from "src/modules/roles/schemas/role.schema";
 import { SoftDeleteModel } from "soft-delete-plugin-mongoose";
-import { Permission, PermissionDocument } from "src/permissions/schemas/permission.schema";
-import { UsersService } from "src/users/users.service";
+import { Permission, PermissionDocument } from "src/modules/permissions/schemas/permission.schema";
+import { UsersService } from "src/modules/users/users.service";
 
 @Injectable()
 export class DatabasesService implements OnModuleInit {

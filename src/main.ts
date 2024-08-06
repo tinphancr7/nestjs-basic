@@ -2,7 +2,7 @@ import { NestFactory, Reflector } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ConfigService } from "@nestjs/config";
 import { Logger, ValidationPipe, VersioningType } from "@nestjs/common";
-import { TransformInterceptor } from "./core/transform.interceptor";
+import { TransformInterceptor } from "./transforms/transform.interceptor";
 import cookieParser from "cookie-parser";
 import { join } from "path";
 import { NestExpressApplication } from "@nestjs/platform-express";
