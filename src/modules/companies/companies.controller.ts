@@ -109,7 +109,6 @@ export class CompaniesController {
   })
   @Get(":id")
   findOne(@Param("id") id: string) {
-    console.log("id", id);
     return this.companiesService.findOne(id);
   }
 

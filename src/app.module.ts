@@ -10,13 +10,11 @@ import { JwtGuard } from "./modules/auth/guards/jwt.guard";
 import { JwtStrategy } from "./modules/auth/strategy/jwt.strategy";
 import { softDeletePlugin } from "soft-delete-plugin-mongoose";
 import { CompaniesModule } from "./modules/companies/companies.module";
-
 import { JobsModule } from "./modules/jobs/jobs.module";
 import { FilesModule } from "./modules/files/files.module";
 import { PermissionsModule } from "./modules/permissions/permissions.module";
 import { RolesModule } from "./modules/roles/roles.module";
 import { ResumesModule } from "./modules/resumes/resumes.module";
-
 import { DatabasesModule } from "./databases/databases.module";
 import { SubscribersModule } from "./modules/subcribers/subscribers.module";
 import { ThrottlerModule } from "@nestjs/throttler";
@@ -24,11 +22,11 @@ import { HealthModule } from "./modules/health/health.module";
 import { MailModule } from "./modules/mail/mail.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { LoggerMiddleware } from "./middlewares/logger.middleware";
+import { CommentsModule } from "./modules/comments/comments.module";
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    // MongooseModule.forRoot("mongodb+srv://phanthanhtincr7:totnghiep10@cluster0.8dij1zc.mongodb.net/nestjs-basic"),
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
@@ -57,11 +55,11 @@ import { LoggerMiddleware } from "./middlewares/logger.middleware";
     PermissionsModule,
     RolesModule,
     ResumesModule,
-
     DatabasesModule,
     SubscribersModule,
     HealthModule,
     MailModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [
