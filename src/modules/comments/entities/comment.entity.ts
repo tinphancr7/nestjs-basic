@@ -36,6 +36,9 @@ export class Comment extends Document {
   })
   parent_id: mongoose.Types.ObjectId | Comment;
 
+  @Prop({ required: false })
+  current_path: string;
+
   @Prop({ default: 0 })
   total_liked: number;
 

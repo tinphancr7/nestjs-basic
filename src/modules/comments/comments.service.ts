@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 // INNER
 import { CreateCommentDto } from "./dto/create-comment.dto";
 
@@ -16,22 +16,103 @@ export class CommentsService {
     // super(jobModel);
   }
   async create(createCommentDto: CreateCommentDto, user: IUser) {
-    // 📝 Chỉ cho phép comment có độ sâu 1 level vì thế chúng ta sẽ làm theo như facebook,
-    // các reply cho comment đã có parent sẽ được chuyển thành con của parent đó.
-    if (createCommentDto?.parent_id) {
-      const parent = await this.commentModel.findById(createCommentDto.parent_id);
-      return await this.commentModel.create({
-        ...createCommentDto,
-        parent_id: parent.parent_id ? parent.parent_id : parent._id,
-        createdBy: toObjectId(user?._id),
-      });
-    }
+    // const target: FlashCard | Collection =
+    //   createCommentDto.comment_type === COMMENT_TYPE.FLASH_CARD
+    //     ? await this.flash_cards_service.findOne(createCommentDto.target_id)
+    //     : await this.collections_service.findOne(createCommentDto.target_id);
+    let parent_id = null,
+      parent_path = null;
 
-    return await this.commentModel.create({
+    if (createCommentDto.parent_id) {
+      const parent = await this.commentModel.findById(createCommentDto.parent_id);
+      if (!parent) throw new BadRequestException();
+      parent_id = parent._id;
+      parent_path = parent.current_path;
+    }
+    const created_comment = await this.commentModel.create({
       ...createCommentDto,
+      // target_id: target._id,
+      parent_id,
+      parent_path,
       createdBy: toObjectId(user?._id),
     });
+    // ⏬ Tạo path từ parent_path
+    created_comment.current_path = `${parent_path || ","}${created_comment._id},`;
+    return await created_comment.save();
   }
+
+  async findAll(filter: { target_id: any }, { offset, limit, sort_type, including_children }) {
+    const comments_reponse = await this.commentModel.find({
+      ...filter,
+      parent_id: null,
+    });
+
+    if (!including_children) {
+      console.log("comments_reponse", comments_reponse);
+      return comments_reponse;
+    }
+    // console.log(comments_reponse.items);
+
+    // const comments_with_children = await Promise.all(
+    //   comments_reponse.map(async (comment) => ({
+    //     ...JSON.parse(JSON.stringify(comment)),
+    //     children: await this.getAllSubComments(
+    //       {
+    //         target_id: filter.target_id,
+    //         parent_id: comment._id.toString(),
+    //       },
+    //       2,
+    //     ),
+    //   })),
+    // );
+    // return {
+    //   count: comments_reponse.count,
+    //   items: comments_with_children.flat(),
+    // };
+    // Sau khi đã có comments tiếp tục tìm sub-comments của từng comment
+    const comments_with_children = await Promise.all(
+      comments_reponse.map(async (comment) => ({
+        ...JSON.parse(JSON.stringify(comment)),
+        children: await this.getAllSubComments({
+          target_id: filter.target_id,
+          parent_id: comment._id.toString(),
+        }),
+      })),
+    );
+    return {
+      // count: comments_reponse.count,
+      items: comments_with_children.flat(),
+    };
+  }
+  async getAllSubComments(filter: { target_id: string; parent_id: string }, deep_level?: number) {
+    console.log("filter", filter, deep_level);
+    return await this.commentModel.find({
+      target_id: filter.target_id,
+      // deleted_at: null,
+      current_path: {
+        $regex: new RegExp(`${filter.parent_id}(,[^,]*){1,${deep_level ?? ""}},$`),
+        $options: "i",
+      },
+    });
+  }
+
+  // async create(createCommentDto: CreateCommentDto, user: IUser) {
+  //   // 📝 Chỉ cho phép comment có độ sâu 1 level vì thế chúng ta sẽ làm theo như facebook,
+  //   // các reply cho comment đã có parent sẽ được chuyển thành con của parent đó.
+  //   if (createCommentDto?.parent_id) {
+  //     const parent = await this.commentModel.findById(createCommentDto.parent_id);
+  //     return await this.commentModel.create({
+  //       ...createCommentDto,
+  //       parent_id: parent.parent_id ? parent.parent_id : parent._id,
+  //       createdBy: toObjectId(user?._id),
+  //     });
+  //   }
+
+  //   return await this.commentModel.create({
+  //     ...createCommentDto,
+  //     createdBy: toObjectId(user?._id),
+  //   });
+  // }
   // async findAll(filter: { target_id: string }, { offset, limit, sort_type }) {
   //   return await this.commentModel.findAll(
   //     {

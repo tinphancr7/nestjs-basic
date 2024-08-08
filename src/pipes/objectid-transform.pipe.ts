@@ -4,12 +4,18 @@ import { Types } from "mongoose";
 @Injectable()
 export class ObjectIdTransformPipe implements PipeTransform {
   transform(value: any, metadata: ArgumentMetadata) {
-    if (typeof value !== "object" || value === null) {
-      throw new BadRequestException("Validation failed");
+    // Handle top-level strings
+    if (typeof value === "string" && this.isObjectId(value)) {
+      return new Types.ObjectId(value);
     }
 
-    this.transformObjectIds(value);
-    return value;
+    // Handle objects and nested objects
+    if (typeof value === "object" && value !== null) {
+      this.transformObjectIds(value);
+      return value;
+    }
+
+    throw new BadRequestException("Validation failed");
   }
 
   private transformObjectIds(obj: any) {
